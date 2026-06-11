@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grupo Vitória — Financeiro</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --accent: #1a56db;
+  --accent-light: #e8f0fd;
+  --accent-dark: #1447b5;
+  --bg: #f5f5f0;
+  --card: #ffffff;
+  --border: #e5e5e0;
+  --text: #1a1a1a;
+  --text-muted: #6b6b6b;
+  --green: #16a34a;
+  --green-bg: #dcfce7;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --yellow: #d97706;
+  --yellow-bg: #fef3c7;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.05);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* LOGIN */
+#login-screen {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; z-index: 1000;
+}
+.login-box {
+  background: var(--card); border-radius: 20px; padding: 40px;
+  width: 100%; max-width: 380px; box-shadow: var(--shadow-md);
+  text-align: center;
+}
+.login-logo { font-size: 28px; font-weight: 700; color: var(--accent); margin-bottom: 4px; }
+.login-sub { color: var(--text-muted); font-size: 14px; margin-bottom: 32px; }
+.login-box input {
+  width: 100%; padding: 12px 16px; border: 1.5px solid var(--border);
+  border-radius: 10px; font-size: 15px; font-family: inherit; outline: none;
+  transition: border-color .2s; margin-bottom: 12px;
+}
+.login-box input:focus { border-color: var(--accent); }
+.login-btn {
+  width: 100%; padding: 13px; background: var(--accent); color: #fff;
+  border: none; border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; transition: background .2s;
+}
+.login-btn:hover { background: var(--accent-dark); }
+.login-error { color: var(--red); font-size: 13px; margin-top: 8px; }
+
+/* LAYOUT */
+#app { display: flex; min-height: 100vh; }
+.sidebar {
+  width: 240px; background: var(--card); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
+}
+.sidebar-header {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-brand { font-size: 18px; font-weight: 700; color: var(--accent); }
+.sidebar-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.sidebar-nav { flex: 1; padding: 12px 8px; overflow-y: auto; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+  border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: 500;
+  color: var(--text-muted); transition: all .15s; margin-bottom: 2px; user-select: none;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); }
+.nav-icon { font-size: 18px; width: 22px; text-align: center; }
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
+.logout-btn {
+  width: 100%; padding: 9px; border: 1.5px solid var(--border); border-radius: 8px;
+  background: none; cursor: pointer; font-size: 13px; font-family: inherit;
+  color: var(--text-muted); transition: all .15s;
+}
+.logout-btn:hover { border-color: var(--red); color: var(--red); }
+
+.main { margin-left: 240px; flex: 1; min-height: 100vh; }
+.page-header {
+  background: var(--card); border-bottom: 1px solid var(--border);
+  padding: 16px 28px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.page-title { font-size: 18px; font-weight: 700; }
+.header-right { display: flex; align-items: center; gap: 12px; }
+.empresa-filter {
+  padding: 8px 12px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 13px; font-family: inherit; outline: none; background: var(--bg);
+  cursor: pointer;
+}
+.empresa-filter:focus { border-color: var(--accent); }
+.content { padding: 24px 28px; }
+
+/* CARDS */
+.cards-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.card {
+  background: var(--card); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); cursor: pointer; transition: box-shadow .2s, transform .1s;
+  border: 1.5px solid transparent;
+}
+.card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.card.active-filter { border-color: var(--accent); }
+.card-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; color: var(--text-muted); margin-bottom: 8px; }
+.card-value { font-size: 26px; font-weight: 700; }
+.card-value.green { color: var(--green); }
+.card-value.red { color: var(--red); }
+.card-value.yellow { color: var(--yellow); }
+.card-value.accent { color: var(--accent); }
+.card-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* TABLE */
+.table-wrap { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.table-head { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.table-title { font-size: 15px; font-weight: 600; }
+table { width: 100%; border-collapse: collapse; }
+thead th { padding: 12px 16px; text-align: left; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--text-muted); background: var(--bg); border-bottom: 1px solid var(--border); }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:hover { background: var(--bg); }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 12px 16px; font-size: 14px; }
+.td-cedente { font-size: 12px; color: var(--text-muted); max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.copy-btn {
+  background: none; border: none; cursor: pointer; padding: 4px 6px;
+  border-radius: 6px; color: var(--text-muted); font-size: 14px;
+  transition: all .15s;
+}
+.copy-btn:hover { background: var(--accent-light); color: var(--accent); }
+.badge {
+  display: inline-flex; align-items: center; padding: 3px 8px;
+  border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.badge-pendente { background: var(--yellow-bg); color: var(--yellow); }
+.badge-pago { background: var(--green-bg); color: var(--green); }
+.badge-atrasado { background: var(--red-bg); color: var(--red); }
+.badge-cancelado { background: #f3f4f6; color: #6b7280; }
+.btn {
+  padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 600; font-family: inherit; transition: all .15s;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: var(--accent-dark); }
+.btn-success { background: var(--green); color: #fff; }
+.btn-success:hover { background: #15803d; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #b91c1c; }
+.btn-ghost { background: var(--bg); color: var(--text); border: 1.5px solid var(--border); }
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* MODAL */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; padding: 20px;
+}
+.modal {
+  background: var(--card); border-radius: 16px; width: 100%;
+  max-width: 480px; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-header {
+  padding: 20px 24px 16px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-size: 16px; font-weight: 700; }
+.modal-close { background: none; border: none; cursor: pointer; font-size: 20px; color: var(--text-muted); line-height: 1; }
+.modal-body { padding: 20px 24px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.form-group { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--text-muted); }
+.form-input, .form-select {
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border);
+  border-radius: 8px; font-size: 14px; font-family: inherit; outline: none;
+  transition: border-color .2s; background: var(--bg);
+}
+.form-input:focus, .form-select:focus { border-color: var(--accent); background: #fff; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+/* TABS EMPRESA */
+.empresas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.empresa-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); cursor: pointer; transition: all .2s;
+  border: 1.5px solid transparent;
+}
+.empresa-card:hover { box-shadow: var(--shadow-md); border-color: var(--accent); }
+.empresa-name { font-size: 17px; font-weight: 700; margin-bottom: 16px; }
+.empresa-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.empresa-stat { text-align: center; }
+.empresa-stat-val { font-size: 18px; font-weight: 700; }
+.empresa-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* SALDO */
+.saldo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.saldo-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.saldo-conta { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-bottom: 6px; }
+.saldo-valor { font-size: 28px; font-weight: 700; }
+.saldo-positivo { color: var(--green); }
+.saldo-negativo { color: var(--red); }
+.saldo-empresa-tag { font-size: 11px; margin-top: 4px; color: var(--text-muted); }
+
+.saldo-actions { display: flex; gap: 10px; margin-bottom: 24px; flex-wrap: wrap; }
+
+/* UPLOAD */
+.upload-area {
+  border: 2px dashed var(--border); border-radius: 12px;
+  padding: 40px; text-align: center; cursor: pointer; transition: all .2s;
+  background: var(--bg);
+}
+.upload-area:hover, .upload-area.drag { border-color: var(--accent); background: var(--accent-light); }
+.upload-icon { font-size: 36px; margin-bottom: 12px; }
+.upload-text { font-size: 15px; font-weight: 600; color: var(--text-muted); }
+.upload-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+/* LOADING */
+.loading { text-align: center; padding: 48px; color: var(--text-muted); font-size: 15px; }
+.spinner {
+  width: 32px; height: 32px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .8s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* TOAST */
+.toast-container { position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: #1a1a1a; color: #fff; padding: 12px 18px;
+  border-radius: 10px; font-size: 14px; font-weight: 500;
+  box-shadow: 0 4px 20px rgba(0,0,0,.25); animation: slideIn .2s ease;
+  max-width: 320px;
+}
+.toast.success { background: var(--green); }
+.toast.error { background: var(--red); }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* CHARTS */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+.chart-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.chart-title { font-size: 14px; font-weight: 700; margin-bottom: 16px; }
+.chart-wrap { position: relative; height: 220px; }
+
+/* ALERTAS */
+.alerta-section { margin-bottom: 20px; }
+.alerta-title { font-size: 15px; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.alerta-list { display: flex; flex-direction: column; gap: 8px; }
+.alerta-item {
+  background: var(--card); border-radius: 10px; padding: 14px 16px;
+  box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between;
+}
+.alerta-info { flex: 1; }
+.alerta-desc { font-size: 14px; font-weight: 600; }
+.alerta-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.alerta-valor { font-size: 15px; font-weight: 700; margin: 0 16px; }
+.whatsapp-btn {
+  padding: 7px 12px; background: #25d366; color: #fff;
+  border: none; border-radius: 8px; cursor: pointer; font-size: 13px;
+  font-weight: 600; font-family: inherit; transition: background .2s;
+}
+.whatsapp-btn:hover { background: #1da851; }
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .content { padding: 16px; }
+  .page-header { padding: 12px 16px; }
+  .cards-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .chart-grid { grid-template-columns: 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  table { display: none; }
+  .mobile-cards { display: flex !important; flex-direction: column; gap: 10px; }
+  .mobile-card { background: var(--card); border-radius: 10px; padding: 14px; box-shadow: var(--shadow); }
+  .mobile-card-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .mobile-card-title { font-size: 14px; font-weight: 600; }
+  .mobile-card-valor { font-size: 16px; font-weight: 700; color: var(--accent); }
+  .mobile-card-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+  .mobile-card-actions { display: flex; gap: 8px; }
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0; background: var(--card);
+    border-top: 1px solid var(--border); display: flex !important; z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .bottom-nav-item {
+    flex: 1; padding: 10px 4px; display: flex; flex-direction: column;
+    align-items: center; gap: 3px; cursor: pointer; font-size: 10px;
+    color: var(--text-muted); font-weight: 500; transition: color .15s;
+  }
+  .bottom-nav-item.active { color: var(--accent); }
+  .bottom-nav-item .nav-icon { font-size: 20px; }
+  .main { padding-bottom: 70px; }
+}
+@media (min-width: 769px) {
+  .mobile-cards { display: none; }
+  .bottom-nav { display: none; }
+}
+
+/* EMPTY STATE */
+.empty { text-align: center; padding: 48px 20px; color: var(--text-muted); }
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-text { font-size: 15px; font-weight: 500; }
+
+/* FECHAMENTO */
+.fechamento-table { background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-top: 20px; }
+.mes-select-row { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
+.total-row { font-weight: 700; background: var(--bg) !important; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">GRUPO VITÓRIA</div>
+    <div class="login-sub">Sistema Financeiro</div>
+    <input type="password" id="login-input" placeholder="Senha de acesso" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-brand">GRUPO VITÓRIA</div>
+      <div class="sidebar-sub">Controle Financeiro</div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-item active" onclick="navTo('dashboard')">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="navTo('empresas')">
+        <span class="nav-icon">🏢</span> Empresas
+      </div>
+      <div class="nav-item" onclick="navTo('comparar')">
+        <span class="nav-icon">📈</span> Comparar
+      </div>
+      <div class="nav-item" onclick="navTo('alertas')">
+        <span class="nav-icon">🔔</span> Alertas
+      </div>
+      <div class="nav-item" onclick="navTo('fechamento')">
+        <span class="nav-icon">📅</span> Fechamento
+      </div>
+      <div class="nav-item" onclick="navTo('saldo')">
+        <span class="nav-icon">💰</span> Saldo de Contas
+      </div>
+      <div class="nav-item" onclick="navTo('lancar')">
+        <span class="nav-icon">➕</span> Lançar Boleto
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <button class="logout-btn" onclick="logout()">Sair</button>
+    </div>
+  </nav>
+
+  <!-- MOBILE BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottom-nav">
+    <div class="bottom-nav-item active" onclick="navTo('dashboard')"><span class="nav-icon">📊</span>Dashboard</div>
+    <div class="bottom-nav-item" onclick="navTo('alertas')"><span class="nav-icon">🔔</span>Alertas</div>
+    <div class="bottom-nav-item" onclick="navTo('saldo')"><span class="nav-icon">💰</span>Saldo</div>
+    <div class="bottom-nav-item" onclick="navTo('fechamento')"><span class="nav-icon">📅</span>Fechamento</div>
+    <div class="bottom-nav-item" onclick="navTo('lancar')"><span class="nav-icon">➕</span>Lançar</div>
+  </nav>
+
+  <div class="main">
+    <div class="page-header">
+      <div class="page-title" id="page-title">Dashboard</div>
+      <div class="header-right">
+        <select class="empresa-filter" id="empresa-filter" onchange="applyFilter()">
+          <option value="">Todas as empresas</option>
+          <option value="Muller's Importados">Muller's Importados</option>
+          <option value="Vitória Atacadista">Vitória Atacadista</option>
+        </select>
+      </div>
+    </div>
+    <div class="content" id="content">
+      <div class="loading"><div class="spinner"></div>Carregando...</div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+// ==================== CONFIG ====================
+const CONFIG = {
+  DB_CONTAS_PAGAR: 'eb3d81d0-87ba-42ec-84fa-dbbfad4f64bf',
+  DB_EMPRESAS: '42ef0b01-4b69-4c0e-a97e-614f9bb3248f',
+  DB_MOV: '14bef012-693e-496a-9eb6-d58f96197424',
+  SENHA_ADMIN: 'Atacadoevarejo123@',
+  CONTAS: ["Muller's Ton", "Muller's Cora", "Vitória Ton"],
+  EMPRESAS: ["Muller's Importados", "Vitória Atacadista"],
+  CATEGORIAS: ['Aluguel','Fornecedor','Assinatura','Imposto','Folha','Frete','Água-Luz-Internet','Embalagem','Seguro','ADS','Honorários','Comissões','Gasto Extra','Outros']
+};
+
+let currentPage = 'dashboard';
+let currentFilter = '';
+let allBoletos = [];
+let allMovs = [];
+let dashFilter = '';
+let chartInstances = {};
+
+// ==================== LOGIN ====================
+function doLogin() {
+  const val = document.getElementById('login-input').value;
+  if (val === CONFIG.SENHA_ADMIN) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    loadPage('dashboard');
+  } else {
+    document.getElementById('login-error').textContent = 'Senha incorreta.';
+  }
+}
+document.getElementById('login-input').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+function logout() {
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('login-input').value = '';
+}
+
+// ==================== NAV ====================
+function navTo(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.bottom-nav-item').forEach(el => el.classList.remove('active'));
+  const titles = { dashboard:'Dashboard', empresas:'Empresas', comparar:'Comparar', alertas:'Alertas', fechamento:'Fechamento Mensal', saldo:'Saldo de Contas', lancar:'Lançar Boleto' };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  const idx = { dashboard:0, alertas:1, saldo:2, fechamento:3, lancar:4 };
+  const bnItems = document.querySelectorAll('.bottom-nav-item');
+  if (idx[page] !== undefined) bnItems[idx[page]]?.classList.add('active');
+  const sidebarItems = document.querySelectorAll('.sidebar .nav-item');
+  const sideIdx = ['dashboard','empresas','comparar','alertas','fechamento','saldo','lancar'].indexOf(page);
+  if (sideIdx >= 0) sidebarItems[sideIdx]?.classList.add('active');
+  loadPage(page);
+}
+function applyFilter() {
+  currentFilter = document.getElementById('empresa-filter').value;
+  loadPage(currentPage);
+}
+
+// ==================== API ====================
+async function notionQuery(dbId, filter = null, sorts = null) {
+  const body = { page_size: 100 };
+  if (filter) body.filter = filter;
+  if (sorts) body.sorts = sorts;
+  const res = await fetch(`/api/notion?path=databases/${dbId}/query`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json();
+  return data.results || [];
+}
+
+async function notionPatch(pageId, properties) {
+  await fetch(`/api/notion?path=pages/${pageId}`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ properties })
+  });
+}
+
+async function notionCreate(dbId, properties) {
+  const res = await fetch(`/api/notion?path=pages`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ parent: { database_id: dbId }, properties })
+  });
+  return res.json();
+}
+
+// ==================== HELPERS ====================
+function getProp(page, key, type = 'text') {
+  const p = page.properties?.[key];
+  if (!p) return '';
+  if (type === 'title') return p.title?.[0]?.plain_text || '';
+  if (type === 'rich_text') return p.rich_text?.[0]?.plain_text || '';
+  if (type === 'number') return p.number ?? 0;
+  if (type === 'select') return p.select?.name || '';
+  if (type === 'date') return p.date?.start || '';
+  return '';
+}
+
+function formatBRL(n) {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(n || 0);
+}
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+function today() { return new Date().toISOString().split('T')[0]; }
+function isAtrasado(venc, status) {
+  return status === 'Pendente' && venc < today();
+}
+
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function showModal(html) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.innerHTML = html;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+  return overlay;
+}
+
+function destroyCharts() {
+  Object.values(chartInstances).forEach(c => { try { c.destroy(); } catch(e){} });
+  chartInstances = {};
+}
+
+// ==================== CARREGAR DADOS ====================
+async function fetchBoletos() {
+  const results = await notionQuery(CONFIG.DB_CONTAS_PAGAR, null, [{ property: 'Vencimento', direction: 'ascending' }]);
+  return results.map(p => ({
+    id: p.id,
+    descricao: getProp(p, 'Descrição', 'title'),
+    empresa: getProp(p, 'Empresa', 'select'),
+    valor: getProp(p, 'Valor', 'number'),
+    vencimento: getProp(p, 'Vencimento', 'date'),
+    status: getProp(p, 'Status', 'select'),
+    tipo: getProp(p, 'Tipo', 'select'),
+    categoria: getProp(p, 'Categoria', 'select'),
+    cedente: getProp(p, 'Cedente', 'rich_text'),
+    obs: getProp(p, 'Observações', 'rich_text'),
+    dataPagamento: getProp(p, 'Data de Pagamento', 'date'),
+    jurosMulta: getProp(p, 'Juros/Multa', 'number'),
+    contaPagamento: getProp(p, 'Conta Pagamento', 'select'),
+  }));
+}
+
+async function fetchMovs() {
+  const results = await notionQuery(CONFIG.DB_MOV, null, [{ property: 'Data', direction: 'descending' }]);
+  return results.map(p => ({
+    id: p.id,
+    descricao: getProp(p, 'Descrição', 'title'),
+    tipo: getProp(p, 'Tipo', 'select'),
+    valor: getProp(p, 'Valor', 'number'),
+    data: getProp(p, 'Data', 'date'),
+    conta: getProp(p, 'Conta', 'select'),
+    contaDestino: getProp(p, 'Conta Destino', 'select'),
+    categoria: getProp(p, 'Categoria', 'select'),
+    empresa: getProp(p, 'Empresa', 'select'),
+    obs: getProp(p, 'Observações', 'rich_text'),
+  }));
+}
+
+// ==================== DASHBOARD ====================
+async function loadPage(page) {
+  destroyCharts();
+  const content = document.getElementById('content');
+  content.innerHTML = '<div class="loading"><div class="spinner"></div>Carregando...</div>';
+  try {
+    if (page === 'dashboard') await renderDashboard();
+    else if (page === 'empresas') await renderEmpresas();
+    else if (page === 'comparar') await renderComparar();
+    else if (page === 'alertas') await renderAlertas();
+    else if (page === 'fechamento') await renderFechamento();
+    else if (page === 'saldo') await renderSaldo();
+    else if (page === 'lancar') renderLancar();
+  } catch(e) {
+    content.innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><div class="empty-text">Erro ao carregar: ${e.message}</div></div>`;
+  }
+}
+
+async function renderDashboard() {
+  allBoletos = await fetchBoletos();
+  let boletos = allBoletos;
+  if (currentFilter) boletos = boletos.filter(b => b.empresa === currentFilter);
+
+  const now = today();
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekStr = weekEnd.toISOString().split('T')[0];
+
+  // Atualiza status atrasados na lista local
+  boletos = boletos.map(b => ({
+    ...b,
+    status: isAtrasado(b.vencimento, b.status) ? 'Atrasado' : b.status
+  }));
+
+  const pendentes = boletos.filter(b => b.status === 'Pendente' || b.status === 'Atrasado');
+  const venceHoje = pendentes.filter(b => b.vencimento === now);
+  const estaSemana = pendentes.filter(b => b.vencimento > now && b.vencimento <= weekStr);
+  const atrasados = boletos.filter(b => b.status === 'Atrasado' || isAtrasado(b.vencimento, b.status));
+
+  const totalVencer = pendentes.reduce((s,b) => s + b.valor, 0);
+  const totalHoje = venceHoje.reduce((s,b) => s + b.valor, 0);
+  const totalSemana = estaSemana.reduce((s,b) => s + b.valor, 0);
+  const totalAtrasado = atrasados.reduce((s,b) => s + b.valor, 0);
+
+  // Filtra tabela baseado em card clicado
+  let tabelaBoletos = dashFilter === 'hoje' ? venceHoje
+    : dashFilter === 'semana' ? estaSemana
+    : dashFilter === 'atrasado' ? atrasados
+    : pendentes;
+
+  const content = document.getElementById('content');
+  content.innerHTML = `
+    <div class="cards-grid">
+      <div class="card ${dashFilter===''?'active-filter':''}" onclick="setDashFilter('')">
+        <div class="card-label">Total a Vencer</div>
+        <div class="card-value accent">${formatBRL(totalVencer)}</div>
+        <div class="card-sub">${pendentes.length} boleto(s)</div>
+      </div>
+      <div class="card ${dashFilter==='hoje'?'active-filter':''}" onclick="setDashFilter('hoje')">
+        <div class="card-label">Vence Hoje</div>
+        <div class="card-value yellow">${formatBRL(totalHoje)}</div>
+        <div class="card-sub">${venceHoje.length} boleto(s)</div>
+      </div>
+      <div class="card ${dashFilter==='semana'?'active-filter':''}" onclick="setDashFilter('semana')">
+        <div class="card-label">Esta Semana</div>
+        <div class="card-value accent">${formatBRL(totalSemana)}</div>
+        <div class="card-sub">${estaSemana.length} boleto(s)</div>
+      </div>
+      <div class="card ${dashFilter==='atrasado'?'active-filter':''}" onclick="setDashFilter('atrasado')">
+        <div class="card-label">Atrasados</div>
+        <div class="card-value red">${formatBRL(totalAtrasado)}</div>
+        <div class="card-sub">${atrasados.length} boleto(s)</div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="table-title">Contas a Pagar</div>
+      </div>
+      ${renderTabelaBoletos(tabelaBoletos)}
+      ${renderMobileCards(tabelaBoletos)}
+    </div>
+  `;
+}
+
+function setDashFilter(f) {
+  dashFilter = f;
+  renderDashboard();
+}
+
+function renderTabelaBoletos(boletos) {
+  if (!boletos.length) return '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Nenhum boleto neste filtro</div></div>';
+  return `
+  <table>
+    <thead>
+      <tr>
+        <th>Descrição</th>
+        <th>Empresa</th>
+        <th>Categoria</th>
+        <th>Vencimento</th>
+        <th>Valor</th>
+        <th>Status</th>
+        <th>Linha Digitável</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${boletos.map(b => `
+        <tr>
+          <td><b>${b.descricao}</b>${b.obs ? `<br><span style="font-size:11px;color:var(--text-muted)">${b.obs}</span>` : ''}</td>
+          <td>${b.empresa}</td>
+          <td>${b.categoria}</td>
+          <td style="color:${b.vencimento < today() && b.status !== 'Pago' ? 'var(--red)' : 'inherit'}">${formatDate(b.vencimento)}</td>
+          <td><b>${formatBRL(b.valor)}</b></td>
+          <td><span class="badge badge-${(b.status||'pendente').toLowerCase()}">${b.status || 'Pendente'}</span></td>
+          <td>
+            ${b.cedente ? `<div class="td-cedente" title="${b.cedente}">${b.cedente}</div>
+            <button class="copy-btn" title="Copiar" onclick="copyText('${b.cedente.replace(/'/g,"\\'")}')">📋</button>` : '-'}
+          </td>
+          <td>
+            ${b.status !== 'Pago' && b.status !== 'Cancelado' ?
+              `<button class="btn btn-success btn-sm" onclick="marcarPago('${b.id}','${b.descricao.replace(/'/g,"\\'")}',${b.valor},'${b.vencimento}')">Pago</button>` : ''}
+            ${b.status === 'Pago' ?
+              `<button class="btn btn-ghost btn-sm" onclick="desfazerPago('${b.id}')">Desfazer</button>` : ''}
+          </td>
+        </tr>
+      `).join('')}
+    </tbody>
+  </table>`;
+}
+
+function renderMobileCards(boletos) {
+  if (!boletos.length) return '';
+  return `<div class="mobile-cards">
+    ${boletos.map(b => `
+      <div class="mobile-card">
+        <div class="mobile-card-top">
+          <div class="mobile-card-title">${b.descricao}</div>
+          <div class="mobile-card-valor">${formatBRL(b.valor)}</div>
+        </div>
+        <div class="mobile-card-meta">${b.empresa} • ${b.categoria} • <span style="color:${b.vencimento < today() ? 'var(--red)':'inherit'}">${formatDate(b.vencimento)}</span></div>
+        ${b.cedente ? `<div class="td-cedente" style="margin-bottom:8px">${b.cedente} <button class="copy-btn" onclick="copyText('${b.cedente.replace(/'/g,"\\'")}')">📋</button></div>` : ''}
+        <div class="mobile-card-actions">
+          ${b.status !== 'Pago' && b.status !== 'Cancelado' ?
+            `<button class="btn btn-success btn-sm" onclick="marcarPago('${b.id}','${b.descricao.replace(/'/g,"\\'")}',${b.valor},'${b.vencimento}')">✅ Pago</button>` : ''}
+          ${b.status === 'Pago' ?
+            `<button class="btn btn-ghost btn-sm" onclick="desfazerPago('${b.id}')">↩ Desfazer</button>` : ''}
+          <span class="badge badge-${(b.status||'pendente').toLowerCase()}">${b.status || 'Pendente'}</span>
+        </div>
+      </div>
+    `).join('')}
+  </div>`;
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => toast('Copiado!', 'success')).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); ta.remove(); toast('Copiado!', 'success');
+  });
+}
+
+// ==================== MARCAR PAGO ====================
+function marcarPago(id, desc, valor, vencimento) {
+  const atrasado = vencimento < today();
+  let html = `<div class="modal">
+    <div class="modal-header"><div class="modal-title">Registrar Pagamento</div><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button></div>
+    <div class="modal-body">
+      <p style="margin-bottom:16px;font-size:14px;color:var(--text-muted)">${desc} — <b>${formatBRL(valor)}</b></p>
+      <div class="form-group">
+        <label class="form-label">Data do Pagamento</label>
+        <input type="date" class="form-input" id="pago-data" value="${today()}">
+      </div>
+      ${atrasado ? `<div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Juros (R$)</label>
+          <input type="number" class="form-input" id="pago-juros" value="0" step="0.01">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Multa (R$)</label>
+          <input type="number" class="form-input" id="pago-multa" value="0" step="0.01">
+        </div>
+      </div>` : ''}
+      <div class="form-group">
+        <label class="form-label">Conta de Pagamento</label>
+        <select class="form-select" id="pago-conta">
+          <option value="">Selecione...</option>
+          ${CONFIG.CONTAS.map(c => `<option>${c}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      <button class="btn btn-success" onclick="confirmarPago('${id}',${atrasado})">Confirmar Pagamento</button>
+    </div>
+  </div>`;
+  showModal(html);
+}
+
+async function confirmarPago(id, atrasado) {
+  const data = document.getElementById('pago-data').value;
+  const conta = document.getElementById('pago-conta').value;
+  if (!data || !conta) return toast('Preencha todos os campos', 'error');
+
+  const props = {
+    'Status': { select: { name: 'Pago' } },
+    'Data de Pagamento': { date: { start: data } },
+    'Conta Pagamento': { select: { name: conta } }
+  };
+  if (atrasado) {
+    const juros = parseFloat(document.getElementById('pago-juros')?.value || 0);
+    const multa = parseFloat(document.getElementById('pago-multa')?.value || 0);
+    if (juros + multa > 0) props['Juros/Multa'] = { number: juros + multa };
+  }
+
+  document.querySelector('.modal-overlay').remove();
+  try {
+    await notionPatch(id, props);
+    toast('Pagamento registrado!', 'success');
+    await renderDashboard();
+  } catch(e) {
+    toast('Erro ao salvar', 'error');
+  }
+}
+
+async function desfazerPago(id) {
+  if (!confirm('Desfazer pagamento?')) return;
+  try {
+    await notionPatch(id, {
+      'Status': { select: { name: 'Pendente' } },
+      'Data de Pagamento': { date: null },
+      'Conta Pagamento': { select: null },
+      'Juros/Multa': { number: null }
+    });
+    toast('Pagamento desfeito', 'success');
+    await loadPage(currentPage);
+  } catch(e) {
+    toast('Erro ao desfazer', 'error');
+  }
+}
+
+// ==================== EMPRESAS ====================
+async function renderEmpresas() {
+  allBoletos = await fetchBoletos();
+  const now = today();
+
+  const empresas = CONFIG.EMPRESAS.map(emp => {
+    const boletos = allBoletos.filter(b => b.empresa === emp);
+    const pendentes = boletos.filter(b => (b.status === 'Pendente' || b.status === 'Atrasado') || isAtrasado(b.vencimento, b.status));
+    const pagos = boletos.filter(b => b.status === 'Pago');
+    const atrasados = boletos.filter(b => isAtrasado(b.vencimento, b.status) || b.status === 'Atrasado');
+    return { emp, pendentes, pagos, atrasados };
+  });
+
+  document.getElementById('content').innerHTML = `
+    <div class="empresas-grid">
+      ${empresas.map(({ emp, pendentes, pagos, atrasados }) => `
+        <div class="empresa-card" onclick="openEmpresaModal('${emp}')">
+          <div class="empresa-name">🏢 ${emp}</div>
+          <div class="empresa-stats">
+            <div class="empresa-stat">
+              <div class="empresa-stat-val accent">${formatBRL(pendentes.reduce((s,b)=>s+b.valor,0))}</div>
+              <div class="empresa-stat-label">A Vencer</div>
+            </div>
+            <div class="empresa-stat">
+              <div class="empresa-stat-val green">${formatBRL(pagos.reduce((s,b)=>s+b.valor,0))}</div>
+              <div class="empresa-stat-label">Pagos</div>
+            </div>
+            <div class="empresa-stat">
+              <div class="empresa-stat-val red">${formatBRL(atrasados.reduce((s,b)=>s+b.valor,0))}</div>
+              <div class="empresa-stat-label">Atrasados</div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function openEmpresaModal(emp) {
+  const boletos = allBoletos.filter(b => b.empresa === emp && b.status !== 'Pago' && b.status !== 'Cancelado');
+  const html = `<div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">🏢 ${emp}</div>
+      <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      ${boletos.length ? `
+      <table>
+        <thead><tr><th>Descrição</th><th>Vencimento</th><th>Valor</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          ${boletos.map(b => `<tr>
+            <td>${b.descricao}</td>
+            <td>${formatDate(b.vencimento)}</td>
+            <td>${formatBRL(b.valor)}</td>
+            <td><span class="badge badge-${(isAtrasado(b.vencimento,b.status)?'atrasado':b.status).toLowerCase()}">${isAtrasado(b.vencimento,b.status)?'Atrasado':b.status}</span></td>
+            <td><button class="btn btn-success btn-sm" onclick="this.closest('.modal-overlay').remove();marcarPago('${b.id}','${b.descricao.replace(/'/g,"\\'")}',${b.valor},'${b.vencimento}')">Pago</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+      ` : '<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">Sem pendências</div></div>'}
+    </div>
+  </div>`;
+  showModal(html);
+}
+
+// ==================== COMPARAR ====================
+async function renderComparar() {
+  allBoletos = await fetchBoletos();
+  const now = new Date();
+  const mesAtual = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="mes-select-row">
+      <select class="empresa-filter" id="comparar-mes" onchange="atualizarComparar()">
+        ${gerarMeses().map(m => `<option value="${m.val}" ${m.val===mesAtual?'selected':''}>${m.label}</option>`).join('')}
+      </select>
+    </div>
+    <div class="chart-grid" id="comparar-charts"></div>
+  `;
+  atualizarComparar();
+}
+
+function gerarMeses() {
+  const meses = [];
+  const now = new Date();
+  for (let i = 5; i >= -1; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    meses.push({ val: `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`, label: d.toLocaleString('pt-BR', { month: 'long', year: 'numeric' }) });
+  }
+  return meses;
+}
+
+function atualizarComparar() {
+  const mes = document.getElementById('comparar-mes')?.value;
+  if (!mes) return;
+  let boletos = allBoletos.filter(b => b.vencimento?.startsWith(mes));
+  if (currentFilter) boletos = boletos.filter(b => b.empresa === currentFilter);
+
+  // Por empresa
+  const porEmpresa = {};
+  CONFIG.EMPRESAS.forEach(e => porEmpresa[e] = 0);
+  boletos.forEach(b => { if (b.empresa) porEmpresa[b.empresa] = (porEmpresa[b.empresa] || 0) + b.valor; });
+
+  // Por categoria
+  const porCat = {};
+  boletos.forEach(b => { if (b.categoria) porCat[b.categoria] = (porCat[b.categoria] || 0) + b.valor; });
+  const cats = Object.entries(porCat).sort((a,b) => b[1]-a[1]).slice(0,8);
+
+  document.getElementById('comparar-charts').innerHTML = `
+    <div class="chart-card"><div class="chart-title">Por Empresa</div><div class="chart-wrap"><canvas id="chart-empresa"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Por Categoria</div><div class="chart-wrap"><canvas id="chart-cat"></canvas></div></div>
+  `;
+
+  const colors = ['#1a56db','#f97316','#16a34a','#dc2626','#7c3aed','#0891b2','#d97706','#059669'];
+
+  chartInstances.empresa = new Chart(document.getElementById('chart-empresa'), {
+    type: 'bar',
+    data: { labels: Object.keys(porEmpresa), datasets: [{ data: Object.values(porEmpresa), backgroundColor: colors }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => formatBRL(v) } } } }
+  });
+  chartInstances.cat = new Chart(document.getElementById('chart-cat'), {
+    type: 'bar',
+    data: { labels: cats.map(c=>c[0]), datasets: [{ data: cats.map(c=>c[1]), backgroundColor: colors }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => formatBRL(v) } } } }
+  });
+}
+
+// ==================== ALERTAS ====================
+async function renderAlertas() {
+  allBoletos = await fetchBoletos();
+  let boletos = allBoletos;
+  if (currentFilter) boletos = boletos.filter(b => b.empresa === currentFilter);
+
+  const now = today();
+  const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() + 7);
+  const weekStr = weekEnd.toISOString().split('T')[0];
+
+  const atrasados = boletos.filter(b => (b.status === 'Pendente' && b.vencimento < now) || b.status === 'Atrasado');
+  const hoje = boletos.filter(b => b.status === 'Pendente' && b.vencimento === now);
+  const semana = boletos.filter(b => b.status === 'Pendente' && b.vencimento > now && b.vencimento <= weekStr);
+
+  function alertaList(items, cor) {
+    if (!items.length) return '<div style="color:var(--text-muted);font-size:13px;padding:8px 0">Nenhum</div>';
+    return `<div class="alerta-list">${items.map(b => `
+      <div class="alerta-item">
+        <div class="alerta-info">
+          <div class="alerta-desc">${b.descricao}</div>
+          <div class="alerta-meta">${b.empresa} • ${formatDate(b.vencimento)}</div>
+        </div>
+        <div class="alerta-valor" style="color:${cor}">${formatBRL(b.valor)}</div>
+        <button class="whatsapp-btn" onclick="enviarWhatsApp('${b.descricao.replace(/'/g,"\\'")}','${b.empresa}','${formatBRL(b.valor)}','${formatDate(b.vencimento)}')">WhatsApp</button>
+      </div>
+    `).join('')}</div>`;
+  }
+
+  document.getElementById('content').innerHTML = `
+    <div class="alerta-section">
+      <div class="alerta-title">🔴 Atrasados (${atrasados.length})</div>
+      ${alertaList(atrasados, 'var(--red)')}
+    </div>
+    <div class="alerta-section">
+      <div class="alerta-title">🟡 Vence Hoje (${hoje.length})</div>
+      ${alertaList(hoje, 'var(--yellow)')}
+    </div>
+    <div class="alerta-section">
+      <div class="alerta-title">🔵 Esta Semana (${semana.length})</div>
+      ${alertaList(semana, 'var(--accent)')}
+    </div>
+  `;
+}
+
+function enviarWhatsApp(desc, empresa, valor, venc) {
+  const msg = encodeURIComponent(`⚠️ *Alerta Financeiro — ${empresa}*\n\n📋 ${desc}\n💰 ${valor}\n📅 Vencimento: ${venc}\n\n_Grupo Vitória_`);
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+// ==================== FECHAMENTO ====================
+async function renderFechamento() {
+  allBoletos = await fetchBoletos();
+  const now = new Date();
+  const mesAtual = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="mes-select-row">
+      <select class="empresa-filter" id="fech-mes" onchange="atualizarFechamento()">
+        ${gerarMeses().map(m => `<option value="${m.val}" ${m.val===mesAtual?'selected':''}>${m.label}</option>`).join('')}
+      </select>
+      <select class="empresa-filter" id="fech-emp">
+        <option value="">Todas as empresas</option>
+        ${CONFIG.EMPRESAS.map(e => `<option>${e}</option>`).join('')}
+      </select>
+      <button class="btn btn-ghost" onclick="atualizarFechamento()">Filtrar</button>
+    </div>
+    <div id="fech-content"></div>
+  `;
+  atualizarFechamento();
+}
+
+function atualizarFechamento() {
+  const mes = document.getElementById('fech-mes')?.value;
+  const emp = document.getElementById('fech-emp')?.value;
+  let pagos = allBoletos.filter(b => b.status === 'Pago' && b.dataPagamento?.startsWith(mes));
+  if (emp) pagos = pagos.filter(b => b.empresa === emp);
+
+  const totalPago = pagos.reduce((s,b) => s + b.valor + (b.jurosMulta||0), 0);
+  const porCat = {};
+  pagos.forEach(b => { porCat[b.categoria||'Outros'] = (porCat[b.categoria||'Outros']||0) + b.valor; });
+
+  const cats = Object.entries(porCat).sort((a,b) => b[1]-a[1]);
+  destroyCharts();
+
+  document.getElementById('fech-content').innerHTML = `
+    <div class="chart-grid" style="margin-bottom:20px">
+      <div class="chart-card"><div class="chart-title">Por Categoria</div><div class="chart-wrap"><canvas id="fech-chart-cat"></canvas></div></div>
+      <div class="chart-card">
+        <div class="chart-title">Resumo</div>
+        <div style="margin-top:12px">
+          <div style="font-size:13px;color:var(--text-muted);margin-bottom:4px">Total Pago no Mês</div>
+          <div style="font-size:32px;font-weight:700;color:var(--green)">${formatBRL(totalPago)}</div>
+          <div style="font-size:13px;color:var(--text-muted);margin-top:16px">${pagos.length} pagamento(s)</div>
+          <button class="btn btn-ghost" style="margin-top:16px" onclick="exportarWhatsApp()">📤 Exportar WhatsApp</button>
+        </div>
+      </div>
+    </div>
+    <div class="fechamento-table">
+      <table>
+        <thead><tr><th>Descrição</th><th>Empresa</th><th>Categoria</th><th>Data Pag.</th><th>Valor</th><th>Juros</th><th></th></tr></thead>
+        <tbody>
+          ${pagos.map(b => `<tr>
+            <td>${b.descricao}</td>
+            <td>${b.empresa}</td>
+            <td>${b.categoria}</td>
+            <td>${formatDate(b.dataPagamento)}</td>
+            <td>${formatBRL(b.valor)}</td>
+            <td>${b.jurosMulta ? formatBRL(b.jurosMulta) : '-'}</td>
+            <td><button class="btn btn-ghost btn-sm" onclick="desfazerPago('${b.id}')">Desfazer</button></td>
+          </tr>`).join('')}
+          <tr class="total-row"><td colspan="4"><b>TOTAL</b></td><td><b>${formatBRL(totalPago)}</b></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  if (cats.length) {
+    const colors = ['#1a56db','#f97316','#16a34a','#dc2626','#7c3aed','#0891b2','#d97706','#059669'];
+    chartInstances.fechCat = new Chart(document.getElementById('fech-chart-cat'), {
+      type: 'doughnut',
+      data: { labels: cats.map(c=>c[0]), datasets: [{ data: cats.map(c=>c[1]), backgroundColor: colors }] },
+      options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+}
+
+function exportarWhatsApp() {
+  const mes = document.getElementById('fech-mes')?.value;
+  let pagos = allBoletos.filter(b => b.status === 'Pago' && b.dataPagamento?.startsWith(mes));
+  const total = pagos.reduce((s,b) => s+b.valor+(b.jurosMulta||0),0);
+  const lines = pagos.map(b => `• ${b.descricao} — ${formatBRL(b.valor)}`).join('\n');
+  const msg = encodeURIComponent(`📊 *Fechamento Mensal — Grupo Vitória*\n\n${lines}\n\n💰 *Total: ${formatBRL(total)}*`);
+  window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+// ==================== SALDO ====================
+async function renderSaldo() {
+  allBoletos = await fetchBoletos();
+  allMovs = await fetchMovs();
+
+  const mes = new Date();
+  const mesStr = `${mes.getFullYear()}-${String(mes.getMonth()+1).padStart(2,'0')}`;
+
+  document.getElementById('content').innerHTML = `
+    <div class="saldo-actions">
+      <button class="btn btn-primary" onclick="modalNovaEntrada()">➕ Nova Entrada</button>
+      <button class="btn btn-ghost" onclick="modalTransferencia()">🔄 Transferência</button>
+      <button class="btn btn-ghost" onclick="modalSaldoInicial()">💰 Saldo Inicial</button>
+    </div>
+    <div class="saldo-grid" id="saldo-cards"></div>
+    <div class="table-wrap">
+      <div class="table-head">
+        <div class="table-title">Histórico</div>
+        <select class="empresa-filter" id="hist-mes" onchange="atualizarHistorico()">
+          ${gerarMeses().map(m => `<option value="${m.val}" ${m.val===mesStr?'selected':''}>${m.label}</option>`).join('')}
+        </select>
+      </div>
+      <div id="historico-table"></div>
+    </div>
+  `;
+
+  calcularSaldos();
+  atualizarHistorico();
+}
+
+function calcularSaldos() {
+  const saldos = {};
+  CONFIG.CONTAS.forEach(c => saldos[c] = 0);
+
+  // Movimentações
+  allMovs.forEach(m => {
+    if (m.tipo === 'Saldo Inicial' || m.tipo === 'Entrada') saldos[m.conta] = (saldos[m.conta]||0) + m.valor;
+    if (m.tipo === 'Transferência Enviada') saldos[m.conta] = (saldos[m.conta]||0) - m.valor;
+    if (m.tipo === 'Transferência Recebida') saldos[m.conta] = (saldos[m.conta]||0) + m.valor;
+  });
+
+  // Boletos pagos
+  allBoletos.filter(b => b.status === 'Pago' && b.contaPagamento).forEach(b => {
+    saldos[b.contaPagamento] = (saldos[b.contaPagamento]||0) - (b.valor + (b.jurosMulta||0));
+  });
+
+  const contaEmpresa = {
+    "Muller's Ton": "Muller's Importados",
+    "Muller's Cora": "Muller's Importados",
+    "Vitória Ton": "Vitória Atacadista"
+  };
+
+  document.getElementById('saldo-cards').innerHTML = CONFIG.CONTAS.map(c => `
+    <div class="saldo-card">
+      <div class="saldo-conta">${c}</div>
+      <div class="saldo-valor ${saldos[c] >= 0 ? 'saldo-positivo':'saldo-negativo'}">${formatBRL(saldos[c])}</div>
+      <div class="saldo-empresa-tag">${contaEmpresa[c]||''}</div>
+    </div>
+  `).join('');
+}
+
+function atualizarHistorico() {
+  const mes = document.getElementById('hist-mes')?.value;
+  let movs = allMovs.filter(m => m.data?.startsWith(mes));
+  const el = document.getElementById('historico-table');
+  if (!el) return;
+  if (!movs.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">📭</div><div class="empty-text">Sem movimentações</div></div>'; return; }
+  el.innerHTML = `<table>
+    <thead><tr><th>Descrição</th><th>Tipo</th><th>Conta</th><th>Data</th><th>Valor</th><th></th></tr></thead>
+    <tbody>
+      ${movs.map(m => `<tr>
+        <td>${m.descricao}</td>
+        <td><span class="badge badge-${m.tipo==='Entrada'||m.tipo==='Transferência Recebida'||m.tipo==='Saldo Inicial'?'pago':'atrasado'}">${m.tipo}</span></td>
+        <td>${m.conta}${m.contaDestino?` → ${m.contaDestino}`:''}</td>
+        <td>${formatDate(m.data)}</td>
+        <td style="color:${m.tipo==='Transferência Enviada'?'var(--red)':'var(--green)'};font-weight:700">${m.tipo==='Transferência Enviada'?'-':'+'} ${formatBRL(m.valor)}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="excluirMov('${m.id}')">🗑</button></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+async function excluirMov(id) {
+  if (!confirm('Excluir movimentação?')) return;
+  await notionPatch(id, { 'Tipo': { select: null } });
+  // Marca como excluído via workaround - deletar via API Notion não é suportado diretamente
+  // Usamos patch para marcar descrição
+  try {
+    await fetch(`/api/notion?path=pages/${id}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ archived: true })
+    });
+    toast('Excluído', 'success');
+    allMovs = await fetchMovs();
+    calcularSaldos();
+    atualizarHistorico();
+  } catch(e) { toast('Erro ao excluir', 'error'); }
+}
+
+function modalNovaEntrada() {
+  const html = `<div class="modal">
+    <div class="modal-header"><div class="modal-title">➕ Nova Entrada</div><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="ent-desc" placeholder="Ex: Pagamento ML"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" class="form-input" id="ent-valor" step="0.01"></div>
+        <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="ent-data" value="${today()}"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="ent-conta">${CONFIG.CONTAS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Empresa</label><select class="form-select" id="ent-emp">${CONFIG.EMPRESAS.map(e=>`<option>${e}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Categoria</label><select class="form-select" id="ent-cat"><option>Venda Marketplace</option><option>Venda Física</option><option>Aporte</option><option>Devolução</option><option>Outros</option></select></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEntrada()">Salvar</button>
+    </div>
+  </div>`;
+  showModal(html);
+}
+
+async function salvarEntrada() {
+  const desc = document.getElementById('ent-desc').value;
+  const valor = parseFloat(document.getElementById('ent-valor').value);
+  const data = document.getElementById('ent-data').value;
+  const conta = document.getElementById('ent-conta').value;
+  const emp = document.getElementById('ent-emp').value;
+  const cat = document.getElementById('ent-cat').value;
+  if (!desc || !valor || !data) return toast('Preencha todos os campos', 'error');
+  document.querySelector('.modal-overlay').remove();
+  try {
+    await notionCreate(CONFIG.DB_MOV, {
+      'Descrição': { title: [{ text: { content: desc } }] },
+      'Tipo': { select: { name: 'Entrada' } },
+      'Valor': { number: valor },
+      'Data': { date: { start: data } },
+      'Conta': { select: { name: conta } },
+      'Empresa': { select: { name: emp } },
+      'Categoria': { select: { name: cat } }
+    });
+    toast('Entrada registrada!', 'success');
+    allMovs = await fetchMovs();
+    calcularSaldos();
+    atualizarHistorico();
+  } catch(e) { toast('Erro ao salvar', 'error'); }
+}
+
+function modalTransferencia() {
+  const html = `<div class="modal">
+    <div class="modal-header"><div class="modal-title">🔄 Transferência</div><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Descrição</label><input class="form-input" id="tr-desc" value="Transferência entre contas"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">De</label><select class="form-select" id="tr-de">${CONFIG.CONTAS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+        <div class="form-group"><label class="form-label">Para</label><select class="form-select" id="tr-para">${CONFIG.CONTAS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Valor (R$)</label><input type="number" class="form-input" id="tr-valor" step="0.01"></div>
+        <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="tr-data" value="${today()}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarTransferencia()">Transferir</button>
+    </div>
+  </div>`;
+  showModal(html);
+}
+
+async function salvarTransferencia() {
+  const desc = document.getElementById('tr-desc').value;
+  const de = document.getElementById('tr-de').value;
+  const para = document.getElementById('tr-para').value;
+  const valor = parseFloat(document.getElementById('tr-valor').value);
+  const data = document.getElementById('tr-data').value;
+  if (!valor || de === para) return toast('Dados inválidos', 'error');
+  document.querySelector('.modal-overlay').remove();
+  try {
+    await Promise.all([
+      notionCreate(CONFIG.DB_MOV, {
+        'Descrição': { title: [{ text: { content: desc } }] },
+        'Tipo': { select: { name: 'Transferência Enviada' } },
+        'Valor': { number: valor }, 'Data': { date: { start: data } },
+        'Conta': { select: { name: de } }, 'Conta Destino': { select: { name: para } }
+      }),
+      notionCreate(CONFIG.DB_MOV, {
+        'Descrição': { title: [{ text: { content: desc } }] },
+        'Tipo': { select: { name: 'Transferência Recebida' } },
+        'Valor': { number: valor }, 'Data': { date: { start: data } },
+        'Conta': { select: { name: para } }, 'Conta Destino': { select: { name: de } }
+      })
+    ]);
+    toast('Transferência registrada!', 'success');
+    allMovs = await fetchMovs();
+    calcularSaldos();
+    atualizarHistorico();
+  } catch(e) { toast('Erro ao salvar', 'error'); }
+}
+
+function modalSaldoInicial() {
+  const html = `<div class="modal">
+    <div class="modal-header"><div class="modal-title">💰 Definir Saldo Inicial</div><button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Conta</label><select class="form-select" id="si-conta">${CONFIG.CONTAS.map(c=>`<option>${c}</option>`).join('')}</select></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Saldo Inicial (R$)</label><input type="number" class="form-input" id="si-valor" step="0.01"></div>
+        <div class="form-group"><label class="form-label">Data</label><input type="date" class="form-input" id="si-data" value="${today()}"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarSaldoInicial()">Salvar</button>
+    </div>
+  </div>`;
+  showModal(html);
+}
+
+async function salvarSaldoInicial() {
+  const conta = document.getElementById('si-conta').value;
+  const valor = parseFloat(document.getElementById('si-valor').value);
+  const data = document.getElementById('si-data').value;
+  if (!valor) return toast('Informe o valor', 'error');
+  document.querySelector('.modal-overlay').remove();
+  try {
+    await notionCreate(CONFIG.DB_MOV, {
+      'Descrição': { title: [{ text: { content: `Saldo inicial — ${conta}` } }] },
+      'Tipo': { select: { name: 'Saldo Inicial' } },
+      'Valor': { number: valor }, 'Data': { date: { start: data } },
+      'Conta': { select: { name: conta } }
+    });
+    toast('Saldo inicial definido!', 'success');
+    allMovs = await fetchMovs();
+    calcularSaldos();
+    atualizarHistorico();
+  } catch(e) { toast('Erro ao salvar', 'error'); }
+}
+
+// ==================== LANÇAR BOLETO ====================
+function renderLancar() {
+  document.getElementById('content').innerHTML = `
+    <div style="max-width:600px;margin:0 auto">
+      <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+        <div class="upload-icon">📄</div>
+        <div class="upload-text">Enviar PDF ou Foto do Boleto</div>
+        <div class="upload-sub">Clique ou arraste o arquivo aqui</div>
+        <input type="file" id="file-input" accept=".pdf,image/*" style="display:none" onchange="processarArquivo(this.files[0])">
+      </div>
+      <div style="text-align:center;margin:20px 0;color:var(--text-muted);font-size:13px">— ou preencha manualmente —</div>
+      <div class="table-wrap" style="padding:24px">
+        <div id="form-boleto">
+          ${formBoleto()}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function formBoleto(dados = {}) {
+  return `
+    <div class="form-group"><label class="form-label">Descrição *</label><input class="form-input" id="b-desc" value="${dados.descricao||''}"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Empresa *</label>
+        <select class="form-select" id="b-emp">
+          <option value="">Selecione...</option>
+          ${CONFIG.EMPRESAS.map(e => `<option ${dados.empresa===e?'selected':''}>${e}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Valor (R$) *</label><input type="number" class="form-input" id="b-valor" step="0.01" value="${dados.valor||''}"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Vencimento *</label><input type="date" class="form-input" id="b-venc" value="${dados.vencimento||''}"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-select" id="b-tipo">
+          <option>Boleto</option><option>PIX</option><option>Recorrente</option><option>Débito Automático</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Categoria</label>
+        <select class="form-select" id="b-cat">
+          ${CONFIG.CATEGORIAS.map(c => `<option ${dados.categoria===c?'selected':''}>${c}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Conta Pagamento</label>
+        <select class="form-select" id="b-conta">
+          <option value="">A definir</option>
+          ${CONFIG.CONTAS.map(c => `<option>${c}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Linha Digitável / PIX</label><input class="form-input" id="b-cedente" value="${dados.cedente||''}"></div>
+    <div class="form-group"><label class="form-label">Observações</label><input class="form-input" id="b-obs" value="${dados.obs||''}"></div>
+    <button class="btn btn-primary" style="width:100%;margin-top:8px;padding:13px" onclick="salvarBoleto()">💾 Salvar Boleto</button>
+  `;
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('upload-area').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) processarArquivo(file);
+}
+
+async function processarArquivo(file) {
+  if (!file) return;
+  const area = document.getElementById('upload-area');
+  area.innerHTML = '<div class="spinner" style="margin:0 auto"></div>';
+
+  try {
+    const base64 = await fileToBase64(file);
+    const isPDF = file.type === 'application/pdf';
+
+    const body = {
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 1000,
+      messages: [{
+        role: 'user',
+        content: [
+          { type: isPDF ? 'document' : 'image',
+            source: { type: 'base64', media_type: file.type, data: base64 }
+          },
+          { type: 'text', text: `Extraia os dados do boleto/fatura. Responda APENAS em JSON válido sem nenhum texto adicional, no formato:
+{"descricao":"nome do cedente/emissor","valor":0.00,"vencimento":"YYYY-MM-DD","cedente":"linha digitável ou chave PIX completa","categoria":"Fornecedor"}` }
+        ]
+      }]
+    };
+
+    const res = await fetch('/api/anthropic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+
+    let parsed = {};
+    try {
+      const clean = text.replace(/```json|```/g,'').trim();
+      parsed = JSON.parse(clean);
+    } catch(e) { toast('Não foi possível extrair dados automaticamente', 'error'); }
+
+    area.innerHTML = `<div class="upload-icon">✅</div><div class="upload-text">${file.name}</div><div class="upload-sub" style="color:var(--green)">Dados extraídos! Confira abaixo.</div>`;
+    document.getElementById('form-boleto').innerHTML = formBoleto(parsed);
+  } catch(e) {
+    area.innerHTML = `<div class="upload-icon">❌</div><div class="upload-text">Erro ao processar</div>`;
+    toast(e.message, 'error');
+  }
+}
+
+function fileToBase64(file) {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(r.result.split(',')[1]);
+    r.onerror = rej;
+    r.readAsDataURL(file);
+  });
+}
+
+async function salvarBoleto() {
+  const desc = document.getElementById('b-desc').value;
+  const emp = document.getElementById('b-emp').value;
+  const valor = parseFloat(document.getElementById('b-valor').value);
+  const venc = document.getElementById('b-venc').value;
+  const tipo = document.getElementById('b-tipo').value;
+  const cat = document.getElementById('b-cat').value;
+  const conta = document.getElementById('b-conta').value;
+  const cedente = document.getElementById('b-cedente').value;
+  const obs = document.getElementById('b-obs').value;
+
+  if (!desc || !emp || !valor || !venc) return toast('Preencha os campos obrigatórios', 'error');
+
+  try {
+    const props = {
+      'Descrição': { title: [{ text: { content: desc } }] },
+      'Empresa': { select: { name: emp } },
+      'Valor': { number: valor },
+      'Vencimento': { date: { start: venc } },
+      'Status': { select: { name: 'Pendente' } },
+      'Tipo': { select: { name: tipo } },
+      'Categoria': { select: { name: cat } },
+    };
+    if (cedente) props['Cedente'] = { rich_text: [{ text: { content: cedente } }] };
+    if (obs) props['Observações'] = { rich_text: [{ text: { content: obs } }] };
+    if (conta) props['Conta Pagamento'] = { select: { name: conta } };
+
+    await notionCreate(CONFIG.DB_CONTAS_PAGAR, props);
+    toast('Boleto salvo com sucesso!', 'success');
+    renderLancar();
+  } catch(e) {
+    toast('Erro ao salvar: ' + e.message, 'error');
+  }
+}
+</script>
+</body>
+</html>
